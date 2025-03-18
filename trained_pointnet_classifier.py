@@ -1,11 +1,12 @@
+import torch.nn.functional as F
+import numpy as np
+import tqdm
 import torch
-from tqdm import tqdm
 from PointNet import PointNet2Classification
-from constants import class_name_id_map, DATA_FOLDER
+from constants import class_name_id_map, DATA_FOLDER, num_classes
 from utils import collate_fn
-import torch.nn as nn
 from ShapeNetDataset import ShapeNetDataset
-criterion = nn.CrossEntropyLoss()
+
 test_set = ShapeNetDataset(root_dir=DATA_FOLDER, split_type='test')
 test_loader = torch.utils.data.DataLoader(
     test_set,
@@ -21,26 +22,19 @@ classifier = PointNet2Classification(num_classes=num_classes).to(device)
 classifier.load_state_dict(torch.load('pointnet_pp.pth'))
 classifier.eval()
 
-total_loss = 0.0
-all_labels = []
-all_preds = []
-total = 0
-correct = 0
 
-with torch.no_grad():
-    for batch_dict in tqdm(test_loader, total=len(test_loader)):
-        x = batch_dict['points'].to(device)
-        labels = batch_dict['class_id'].to(device)
-        pred = classifier(x)
+test_sample = test_set[np.random.choice(np.arange(len(test_set)))]
+batch_dict = collate_fn([test_sample])
+x = batch_dict['points'].to(device)
 
-        # calculate loss
-        loss = criterion(pred, labels)
-        total_loss += loss.item()
-        total += labels.size(0)
-        correct += pred.argmax(dim=1).eq(labels).sum().item()
-        all_labels.extend(labels.cpu().numpy())
-        all_preds.extend(pred.argmax(dim=1).cpu().numpy())
-
-evaluation_loss = total_loss / len(test_loader)
-print(f"evaluation loss: {evaluation_loss}")
-print(f"Test Accuracy: {100 * correct/total:.2f}%")
+# Get model predictions
+model_preds = classifier(x)
+predicted_class = torch.argmax(model_preds, axis=1).detach().cpu().numpy()[0]
+print(model_preds)
+predicted_class_name = class_id_name_map[predicted_class]
+pred_class_probs = F.softmax(
+    model_preds.flatten(), dim=0).detach().cpu().numpy()
+print(class_id_name_map)
+title = f"Label = {test_sample['class_name']
+                   }, Predicted class = {predicted_class_name}"
+print(title)
