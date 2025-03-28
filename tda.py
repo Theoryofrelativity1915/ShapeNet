@@ -1,7 +1,10 @@
+from ShapeNetDataset import ShapeNetDataset
+from constants import DATA_FOLDER
+import numpy as np
+import pickle
 from gtda.diagrams import Amplitude
 from sklearn.pipeline import make_union
 from gtda.diagrams import NumberOfPoints
-import numpy as np
 from openml.datasets.functions import get_dataset
 from gtda.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
@@ -72,8 +75,10 @@ homology_dimensions = [0, 1, 2]
 # pipeline["model"].oob_score_
 
 # Let's improve our model
-
+train_set = ShapeNetDataset(root_dir=DATA_FOLDER, split_type='train')
 df = get_dataset('shapes').get_data(dataset_format='dataframe')[0]
+print(df.head())
+exit()
 # df.head()
 # plot_point_cloud(df.query('target == "biplane0"')[["x", "y", "z"]].values)
 
@@ -131,3 +136,5 @@ pipe = Pipeline(
 )
 pipe.fit(persistence_diagrams, labels)
 print(f"OOB score: {pipe["rf"].oob_score_:.3f}")
+with open('./tda_weights', 'wb') as f:
+    pickle.dump(pipe, f)
