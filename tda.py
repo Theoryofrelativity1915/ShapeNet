@@ -1,93 +1,23 @@
-from ShapeNetDataset import ShapeNetDataset
+from utils import get_point_clouds_and_labels, compute_persistence_diagram_in_dimension_k
 from constants import DATA_FOLDER
 import numpy as np
 import pickle
 from gtda.diagrams import Amplitude
 from sklearn.pipeline import make_union
 from gtda.diagrams import NumberOfPoints
-from openml.datasets.functions import get_dataset
 from gtda.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from gtda.diagrams import PersistenceEntropy
-from gtda.plotting import plot_diagram
 from gtda.homology import VietorisRipsPersistence
-from gtda.plotting import plot_point_cloud
-from generate_datasets import make_point_clouds
 
-# point_clouds_basic, labels_basic = make_point_clouds(
-#     n_samples_per_shape=10, n_points=20, noise=0.5)
-# point_clouds_basic.shape, labels_basic.shape
-#
-# plot_point_cloud(point_clouds_basic[0])
-# plot_point_cloud(point_clouds_basic[10])
-# plot_point_cloud(point_clouds_basic[-1])
-#
-# Track connected components, loops, and voids
 homology_dimensions = [0, 1, 2]
 
-# Collapse edges to speed up H2 persistence calculation!
-# persistence = VietorisRipsPersistence(
-#     metric="euclidean",
-#     homology_dimensions=homology_dimensions,
-#     n_jobs=6,
-#     collapse_edges=True,
-# )
-
-# diagrams_basic = persistence.fit_transform(point_clouds_basic)
-
-# # Circle
-# plot_diagram(diagrams_basic[0])
-# # Sphere
-# plot_diagram(diagrams_basic[10])
-# # Torus
-# plot_diagram(diagrams_basic[-1])
-
-
-# persistence_entropy = PersistenceEntropy()
-
-# calculate topological feature matrix
-# X_basic = persistence_entropy.fit_transform(diagrams_basic)
-
-# expect shape - (n_point_clouds, n_homology_dims)
-# X_basic.shape
-# plot_point_cloud(X_basic)
-
-# rf = RandomForestClassifier(oob_score=True)
-# rf.fit(X_basic, labels_basic)
-
-# print(f"OOB score: {rf.oob_score_:.3f}")
-
-
-# steps = [
-#     ("persistence", VietorisRipsPersistence(metric="euclidean",
-#      homology_dimensions=homology_dimensions, n_jobs=6)),
-#     ("entropy", PersistenceEntropy()),
-#     ("model", RandomForestClassifier(oob_score=True)),
-# ]
-
-# pipeline = Pipeline(steps)
-# pipeline.fit(point_clouds_basic, labels_basic)
-# Pipeline(steps=[('persistence',
-#                  VietorisRipsPersistence(homology_dimensions=[0, 1, 2],
-#                                          n_jobs=6)),
-#                 ('entropy', PersistenceEntropy()),
-#                 ('model', RandomForestClassifier(oob_score=True))])
-# pipeline["model"].oob_score_
-
 # Let's improve our model
-train_set = ShapeNetDataset(root_dir=DATA_FOLDER, split_type='train')
-df = get_dataset('shapes').get_data(dataset_format='dataframe')[0]
-print(df.head())
-exit()
-# df.head()
-# plot_point_cloud(df.query('target == "biplane0"')[["x", "y", "z"]].values)
+print("Fetching point clouds.")
+point_clouds, labels = get_point_clouds_and_labels()
+point_clouds = point_clouds[0:10]
 
-point_clouds = np.asarray(
-    [
-        df.query("target == @shape")[["x", "y", "z"]].values
-        for shape in df["target"].unique()
-    ]
-)
+
 # point_clouds.shape
 persistence = VietorisRipsPersistence(
     metric="euclidean",
@@ -95,25 +25,29 @@ persistence = VietorisRipsPersistence(
     n_jobs=6,
     collapse_edges=True,
 )
-persistence_diagrams = persistence.fit_transform(point_clouds)
-# Index - (human_arms_out, 0), (vase, 10), (dining_chair, 20), (biplane, 30)
-# index = 30
-# # plot_diagram(persistence_diagrams[index])
-# persistence_entropy = PersistenceEntropy(normalize=True)
-# # Calculate topological feature matrix
-# X = persistence_entropy.fit_transform(persistence_diagrams)
-# Visualise feature matrix
-# plot_point_cloud(X)
+print("Calculating persistence diagrams.")
+persistence_diagrams = [compute_persistence_diagram_in_dimension_k(
+    point_cloud, homology_dimensions) for point_cloud in point_clouds]
 
-labels = np.zeros(40)
-labels[10:20] = 1
-labels[20:30] = 2
-labels[30:] = 3
 
-# rf = RandomForestClassifier(oob_score=True, random_state=42)
-# rf.fit(X, labels)
-#
+def normalize_dimensions(persistence_diagrams):
+    m = get_max_len(persistence_diagrams)
+    print("M = ", m)
+    for i in range(len(persistence_diagrams)):
+        diagram = persistence_diagrams[i]
+        while len(diagram) < m:
+            diagram.append(0)
 
+
+def get_max_len(persistence_diagrams):
+    m = 0
+    for diagram in persistence_diagrams:
+        if len(diagram) > m:
+            m = len(diagram)
+    return m
+
+
+normalize_dimensions(persistence_diagrams)
 # Select a variety of metrics to calculate amplitudes
 metrics = [
     {"metric": metric}
@@ -134,7 +68,8 @@ pipe = Pipeline(
         ("rf", RandomForestClassifier(oob_score=True, random_state=42)),
     ]
 )
+print("Fitting pipeline to persistence diagrams.")
 pipe.fit(persistence_diagrams, labels)
-print(f"OOB score: {pipe["rf"].oob_score_:.3f}")
+print(f'OOB score: {pipe["rf"].oob_score_:.3f}')
 with open('./tda_weights', 'wb') as f:
     pickle.dump(pipe, f)

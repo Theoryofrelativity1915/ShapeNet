@@ -58,4 +58,4 @@ for P in point_cloud_data:
 
 # Convert to NumPy array (if desired)
 training_point_clouds = np.asarray(training_point_clouds_read_from_pcds)
-print(training_point_clouds.shape)
+# print(training_point_clouds.shape)

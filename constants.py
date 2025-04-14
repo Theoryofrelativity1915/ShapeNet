@@ -14,7 +14,7 @@ class_name_id_map = {'Airplane': 0,
                      'Rocket': 13,
                      'Skateboard': 14,
                      'Table': 15}
-DATA_FOLDER = './shapenet_core'
+DATA_FOLDER = './shapenet_data'
 N_EPOCHS = 20
 num_points = 2500
 num_classes = 16

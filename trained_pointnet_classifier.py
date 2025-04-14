@@ -35,6 +35,5 @@ predicted_class_name = class_id_name_map[predicted_class]
 pred_class_probs = F.softmax(
     model_preds.flatten(), dim=0).detach().cpu().numpy()
 print(class_id_name_map)
-title = f"Label = {test_sample['class_name']
-                   }, Predicted class = {predicted_class_name}"
+title = f"Label = {test_sample['class_name'] }, Predicted class = {predicted_class_name}"
 print(title)
