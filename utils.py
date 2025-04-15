@@ -49,30 +49,3 @@ def compute_persistence_diagram_in_dimension_k(P, dimensions):
             pers_pairs.append([np.float64(pair[0]), (pair[1]), np.float64(i)])
     return pers_pairs
 
-
-# def get_point_clouds_and_labels():
-#     training_persistence_diagrams = []
-#     training_point_clouds_read_from_pcds = []
-#     labels = []
-#     training_point_clouds = []
-#     with open('./shapenet_data/train_split.json') as f:
-#         training_data = json.load(f)
-#         for training_data_file in training_data:
-#             labels.append(training_data_file[0])
-#             training_file = training_data_file[-1].split('/')
-#             actual_training_file_path = "shapenet_data/" + \
-#                 training_file[0] + "/points/" + \
-#                 training_file[-1].split('.')[0] + ".npy"
-#
-#             # P = o3d.io.read_point_cloud(actual_training_file_path).points
-#             P = np.load(actual_training_file_path)
-#             persistence_pairs = compute_persistence_diagram_in_dimension_k(
-#                 P, homology_dimensions)
-#             training_persistence_diagrams.append(np.asarray(persistence_pairs))
-#             if len(training_persistence_diagrams) % 100 == 0:
-#                 print(len(training_persistence_diagrams),
-#                       "persistence diagrams computed")
-#                 return [training_point_clouds, labels]
-#             training_point_clouds.append(np.asarray(
-#                 training_point_clouds_read_from_pcds))
-#     return [training_point_clouds, labels]

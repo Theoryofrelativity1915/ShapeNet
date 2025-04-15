@@ -48,20 +48,28 @@ print(f"Test set length = {len(test_set)}")
 
 
 sample_loader = torch.utils.data.DataLoader(
-    train_set, batch_size=16, num_workers=2, shuffle=True, collate_fn=collate_fn)
+    train_set, batch_size=16, num_workers=2, shuffle=True,
+    collate_fn=collate_fn)
 dataloader_iter = iter(sample_loader)
 batch_dict = next(dataloader_iter)
-print(batch_dict.keys())
+
 for key in ['points', 'seg_labels', 'class_id']:
     print(f"batch_dict[{key}].shape = {batch_dict[key].shape}")
+
 batchSize = 64
 workers = 2
+
 train_loader = torch.utils.data.DataLoader(
-    train_set, batch_size=batchSize, shuffle=True, num_workers=workers, collate_fn=collate_fn)
+    train_set, batch_size=batchSize, shuffle=True, num_workers=workers,
+    collate_fn=collate_fn)
+
 val_loader = torch.utils.data.DataLoader(
-    val_set, batch_size=batchSize, shuffle=True, num_workers=workers, collate_fn=collate_fn)
+    val_set, batch_size=batchSize, shuffle=True, num_workers=workers,
+    collate_fn=collate_fn)
+
 test_loader = torch.utils.data.DataLoader(
-    test_set, batch_size=batchSize, shuffle=True, num_workers=workers, collate_fn=collate_fn)
+    test_set, batch_size=batchSize, shuffle=True, num_workers=workers,
+    collate_fn=collate_fn)
 
 
 def farthest_point_sample(xyz, npoint):
