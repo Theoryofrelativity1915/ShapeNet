@@ -1,4 +1,6 @@
 dataset/
 shapenet_core/
 iframe_figures/
-
+shapenet/
+dataset-shapenet/
+ModelNet40Dataset/
