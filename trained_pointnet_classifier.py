@@ -3,7 +3,19 @@ import torch.nn.functional as F
 from utils import get_point_clouds_and_labels, default_transforms, read_off
 import numpy as np
 from PointNet import PointNet2Classification
-from constants import class_name_id_map, num_classes
+from constants import num_classes
+import os
+
+
+def get_modelnet40_class_map(dataset_root):
+    class_folders = sorted([
+        f for f in os.listdir(dataset_root)
+        if os.path.isdir(os.path.join(dataset_root, f))
+    ])
+    return {cls_name: idx for idx, cls_name in enumerate(class_folders)}
+
+
+class_name_id_map = get_modelnet40_class_map('./ModelNet40Dataset')
 
 
 def pad_or_truncate_point_cloud(pc, target_len=1024):
@@ -51,7 +63,8 @@ def pointnet_prediction_wrapper(point_clouds, num_points=1024):
     predicted_class_names = [class_id_name_map[i] for i in predicted_classes]
 
     for i, (cls, name) in enumerate(zip(predicted_classes, predicted_class_names)):
-        print(f"Sample {i}: Predicted class ID = {cls}, Name = {name}")
+        # print(f"Sample {i}: Predicted class ID = {cls}, Name = {name}")
+        print(f"Predicted class ID = {cls}, Name = {name}")
 
     return probs
 
@@ -82,5 +95,5 @@ if __name__ == "__main__":
     certainty, predicted_class = get_max(
         pointnet_prediction_wrapper([pc]))  # Now a proper input
 
-    print(f'Predicted class ID: {predicted_class}')
+    # print(f'Predicted class ID: {predicted_class}')
     print(f'Probability of prediction: {certainty:.4f}')
