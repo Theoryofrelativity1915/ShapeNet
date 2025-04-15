@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from utils import get_point_clouds_and_labels
+from utils import get_point_clouds_and_labels, default_transforms, read_off
 import numpy as np
 from PointNet import PointNet2Classification
 from constants import class_name_id_map, num_classes
@@ -66,10 +66,21 @@ def get_max(preds):
     return m
 
 
+def load_pointcloud_from_off(path):
+    verts, faces = read_off(path)
+    pointcloud = default_transforms()((verts, faces))
+    return pointcloud  # NumPy array of shape (N, 3)
+
+
 if __name__ == "__main__":
-    clouds, labels = get_point_clouds_and_labels()
+    clouds, labels = get_point_clouds_and_labels('./ModelNet40Dataset')
     print(f'Actual class: {labels[0]}')
+
+    # This is the critical fix: convert .off file to a point cloud
+    pc = load_pointcloud_from_off(clouds[0])  # <--- FIXED
+
     certainty, predicted_class = get_max(
-        pointnet_prediction_wrapper([clouds[0]]))
-    # print(f'Predicted class: {predicted_class}')
-    # print(f'Probability of prediction: {certainty}')
+        pointnet_prediction_wrapper([pc]))  # Now a proper input
+
+    print(f'Predicted class ID: {predicted_class}')
+    print(f'Probability of prediction: {certainty:.4f}')

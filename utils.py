@@ -110,19 +110,21 @@ def collate_fn(batch_list):
     return ret
 
 
-def get_point_clouds_and_labels():
+def get_point_clouds_and_labels(dataset_dir):
     labels = []
     pcds = []
-    with open('./shapenet_data/train_split.json') as f:
-        training_data = json.load(f)
-        for training_data_file in training_data:
-            labels.append(training_data_file[0])
-            training_file = training_data_file[-1].split('/')
-            actual_training_file_path = "shapenet_data/" + \
-                training_file[0] + "/points/" + \
-                training_file[-1].split('.')[0] + ".npy"
-            pcds.append(np.load(actual_training_file_path))
-        return [pcds, labels]
+    for dr in os.listdir(dataset_dir):
+        class_dir = dataset_dir + "/" + dr
+        if not os.path.isdir(class_dir): # Need to skip over the metadata file
+            continue
+        for folder in os.listdir(class_dir):
+            if folder == "test":
+                train_file_dir = class_dir + "/" + folder
+                for file in os.listdir(train_file_dir):
+                    file_path = train_file_dir + "/" + file
+                    pcds.append(file_path)
+                    labels.append(dr)
+    return [pcds, labels]
 
 
 def compute_persistence_diagram_in_dimension_k(P, dimensions):
