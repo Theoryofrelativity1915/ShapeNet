@@ -4,8 +4,10 @@ import torch
 
 
 class PointCloudDataset:
-    def __init__(self, root_dir, get_testset=False, transform=default_transforms()):
+    def __init__(self, root_dir, get_testset=False, transform=default_transforms(), tda_features=None):
         self.root_dir = root_dir
+        self.tda_features = tda_features
+
         folders = [dr for dr in sorted(os.listdir(
             root_dir)) if os.path.isdir(f'{root_dir}/{dr}')]
         self.classes = {folder: i for i, folder in enumerate(folders)}
@@ -38,4 +40,8 @@ class PointCloudDataset:
         pcd_path = self.files[idx]
         label = self.labels[idx]
         pointcloud = self.__preproc__(pcd_path)
-        return {'pointcloud': pointcloud, 'category': label}
+        return {
+            'pointcloud': pointcloud,
+            'category': label,
+            'tda': torch.tensor(self.tda_features[idx], dtype=torch.float32) if self.tda_features else None
+        }
