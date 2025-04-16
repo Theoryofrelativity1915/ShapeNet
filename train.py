@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from PointNet import PointNet2Classification as PointNet
 from PointCloudDataset import PointCloudDataset
 from constants import data_path
+
 class_names = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf', 'bottle', 'bowl', 'car', 'chair', 'cone',
                'cup', 'curtain', 'desk', 'door', 'dresser', 'flower_pot', 'glass_box', 'guitar', 'keyboard',
                'lamp', 'laptop', 'mantel', 'monitor', 'night_stand', 'person', 'piano', 'plant', 'radio',
@@ -14,40 +15,17 @@ class_name_id_map = {name: idx for idx, name in enumerate(class_names)}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-# --------------- Load TDA features -----------------
-
-
-def load_tda_features(filepath, class_name_id_map):
-    tda_vectors = []
-    labels = []
-    with open(filepath, 'r') as f:
-        for line in f:
-            parts = line.strip().split()
-            *features, class_name = parts
-            vec = list(map(float, features))
-            tda_vectors.append(vec)
-            labels.append(class_name_id_map[class_name])
-    return tda_vectors, labels
-
-
-# Update if your filenames are different
-tda_train_vecs, train_labels = load_tda_features(
-    "./dutta_modelnet/train-modelnet40-giottofeatures.txt", class_name_id_map)
-tda_test_vecs, test_labels = load_tda_features(
-    "./dutta_modelnet/test-modelnet40-giottofeatures.txt", class_name_id_map)
-tda_dim = len(tda_train_vecs[0])
-
-# --------------- Create Datasets & Loaders -----------------
+# --------------- Create Datasets & Loaders (No TDA) -----------------
 train_dataset = PointCloudDataset(
     root_dir=data_path,
     get_testset=False,
-    tda_features=tda_train_vecs
+    tda_features=None  # <--- Disable TDA
 )
 
 val_dataset = PointCloudDataset(
     root_dir=data_path,
     get_testset=True,
-    tda_features=tda_test_vecs
+    tda_features=None  # <--- Disable TDA
 )
 
 train_loader = DataLoader(train_dataset, batch_size=32,
@@ -55,13 +33,12 @@ train_loader = DataLoader(train_dataset, batch_size=32,
 valid_loader = DataLoader(val_dataset, batch_size=64,
                           shuffle=False, num_workers=4, pin_memory=True)
 
-# --------------- Initialize Model -----------------
-model = PointNet(num_classes=40, tda_dim=tda_dim).to(device)
+# --------------- Initialize Model (No TDA) -----------------
+model = PointNet(num_classes=40, tda_dim=None).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0008)
 criterion = nn.CrossEntropyLoss()
 
 # --------------- Training Function -----------------
-
 
 def train(model, train_loader, val_loader=None, epochs=100):
     for epoch in range(epochs):
@@ -74,10 +51,9 @@ def train(model, train_loader, val_loader=None, epochs=100):
         for i, data in enumerate(train_loader, 0):
             inputs = data['pointcloud'].to(device).float()
             labels = data['category'].to(device)
-            tda_feats = data['tda'].to(device).float()
 
             optimizer.zero_grad()
-            outputs = model(inputs, tda_feats)
+            outputs = model(inputs)  # <--- No TDA passed
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -104,8 +80,7 @@ def train(model, train_loader, val_loader=None, epochs=100):
                 for data in val_loader:
                     inputs = data['pointcloud'].to(device).float()
                     labels = data['category'].to(device)
-                    tda_feats = data['tda'].to(device).float()
-                    outputs = model(inputs, tda_feats)
+                    outputs = model(inputs)  # <--- No TDA passed
                     _, predicted = outputs.max(1)
                     total += labels.size(0)
                     correct += predicted.eq(labels).sum().item()
@@ -113,9 +88,10 @@ def train(model, train_loader, val_loader=None, epochs=100):
             print('Valid accuracy: %d %%' % val_acc)
 
     # Save the model
-    torch.save(model.state_dict(), "pointnet_with_tda.pth")
+    torch.save(model.state_dict(), "pointnet_without_tda.pth")
 
 
 # --------------- Start Training -----------------
 with warnings.catch_warnings():
     train(model, train_loader, valid_loader)
+

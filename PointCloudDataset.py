@@ -31,7 +31,6 @@ class PointCloudDataset:
     def __len__(self):
         return len(self.files)
 
-
     def __preproc__(self, file_path):
         points = read_txt_pointcloud(file_path)
         pointcloud = self.transforms(points)
@@ -41,8 +40,12 @@ class PointCloudDataset:
         pcd_path = self.files[idx]
         label = self.labels[idx]
         pointcloud = self.__preproc__(pcd_path)
-        return {
+        item = {
             'pointcloud': pointcloud,
             'category': label,
-            'tda': torch.tensor(self.tda_features[idx], dtype=torch.float32) if self.tda_features else None
         }
+        if self.tda_features is not None:
+            item['tda'] = torch.tensor(
+                self.tda_features[idx], dtype=torch.float32)
+
+        return item

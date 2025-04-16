@@ -18,7 +18,8 @@ class PointNet2Classification(nn.Module):
 
         # Now input to fc1 is 1024 + tda_dim
         # Allows the model to train regularly without tda inputs
-        self.fc1 = nn.Linear(1024 + tda_dim if tda_dim is not None else 0, 512)
+        self.fc1 = nn.Linear(
+            1024 + tda_dim if tda_dim is not None else 1024, 512)
         self.bn1 = nn.BatchNorm1d(512)
         self.drop1 = nn.Dropout(0.4)
 
