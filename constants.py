@@ -18,4 +18,4 @@ DATA_FOLDER = './shapenet_data'
 N_EPOCHS = 20
 num_points = 2500
 num_classes = 16
-data_path = 'ModelNet40Dataset'
+data_path = 'dutta_modelnet/'

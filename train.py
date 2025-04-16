@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from PointNet import PointNet2Classification as PointNet
 from PointCloudDataset import PointCloudDataset
 from constants import data_path
-from utils import get_folders, default_transforms, read_off
 class_names = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf', 'bottle', 'bowl', 'car', 'chair', 'cone',
                'cup', 'curtain', 'desk', 'door', 'dresser', 'flower_pot', 'glass_box', 'guitar', 'keyboard',
                'lamp', 'laptop', 'mantel', 'monitor', 'night_stand', 'person', 'piano', 'plant', 'radio',
@@ -33,9 +32,9 @@ def load_tda_features(filepath, class_name_id_map):
 
 # Update if your filenames are different
 tda_train_vecs, train_labels = load_tda_features(
-    "./ModelNet40Dataset/train-modelnet40-giottofeatures.txt", class_name_id_map)
+    "./dutta_modelnet/train-modelnet40-giottofeatures.txt", class_name_id_map)
 tda_test_vecs, test_labels = load_tda_features(
-    "./ModelNet40Dataset/test-modelnet40-giottofeatures.txt", class_name_id_map)
+    "./dutta_modelnet/test-modelnet40-giottofeatures.txt", class_name_id_map)
 tda_dim = len(tda_train_vecs[0])
 
 # --------------- Create Datasets & Loaders -----------------
@@ -120,4 +119,3 @@ def train(model, train_loader, val_loader=None, epochs=100):
 # --------------- Start Training -----------------
 with warnings.catch_warnings():
     train(model, train_loader, valid_loader)
-

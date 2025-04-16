@@ -1,5 +1,5 @@
 import os
-from utils import read_off, default_transforms
+from utils import read_txt_pointcloud, default_transforms
 import torch
 
 
@@ -21,7 +21,7 @@ class PointCloudDataset:
             if os.path.isdir(class_dir):
                 class_dir += f'/{sub_folder}/'
                 for file_name in os.listdir(class_dir):
-                    if file_name.endswith('.off'):
+                    if file_name.endswith('.txt'):
                         self.files.append(class_dir + file_name)
                         # striped_file_name = file_name.rstrip(".off")
                         # self.files.append(
@@ -31,9 +31,10 @@ class PointCloudDataset:
     def __len__(self):
         return len(self.files)
 
+
     def __preproc__(self, file_path):
-        verts, faces = read_off(file_path)
-        pointcloud = self.transforms((verts, faces))
+        points = read_txt_pointcloud(file_path)
+        pointcloud = self.transforms(points)
         return pointcloud
 
     def __getitem__(self, idx):
