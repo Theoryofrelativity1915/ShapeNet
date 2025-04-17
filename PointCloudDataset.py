@@ -1,5 +1,3 @@
-import os
-import numpy as np
 from utils import read_txt_pointcloud, default_transforms
 import torch
 
@@ -28,5 +26,3 @@ class PointCloudDataset:
         }
         if tda_vec is not None:
             item['tda'] = torch.tensor(tda_vec, dtype=torch.float32)
-        return item
-
