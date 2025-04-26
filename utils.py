@@ -7,8 +7,25 @@ from PointSampler import PointSampler
 homology_dimensions = [0, 1, 2]
 
 """
-build_combined_dataset grabs the file path to a pointcloud and its associated tda persistence diagram combines them.
+
+build_combined_dataset grabs the file path to a pointcloud and its associated
+tda persistence diagram, then scales the tda vector and combines them.
+
 """
+
+
+def normalize_tda_vector(vec):
+    min_value = min(vec)
+    max_value = max(vec)
+    value_range = max_value - min_value
+
+    # All values are the same. Gonna return the 0 vector
+    if value_range == 0:
+        return [0.0 for _ in vec]
+
+    # normalize vector-values between 0 and 1
+    normalized_vec = [(v - min_value) / value_range for v in vec]
+    return normalized_vec
 
 
 def build_combined_dataset(root_dir, split_file, tda_file=None, class_name_id_map=None):
@@ -25,7 +42,7 @@ def build_combined_dataset(root_dir, split_file, tda_file=None, class_name_id_ma
                 features = parts[0:-1]
                 # Last element (the name) is assigned to class_name
                 class_name = parts[-1]
-                vec = list(map(float, features))
+                vec = normalize_tda_vector(list(map(float, features)))
                 tda_lookup.append((vec, class_name.lower()))
 
     # Load file paths and match with labels and tda vecs
