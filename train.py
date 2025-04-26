@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from sklearn.metrics import precision_score, recall_score, f1_score
 from PointNet import PointNet2Classification as PointNet
 from PointCloudDataset import PointCloudDataset
 from constants import class_name_id_map, data_path
@@ -13,6 +14,8 @@ This is essentially a generic training function for PointNet.
 The key here is loading and intervweaving the tda data. The most difficult part of this was probably aligning the persistence diagrams with their corresponding point clouds. The act of shuffling the data set meant that I had to combine all of the data prior to dataset shuffling. Hence the "build_combined_dataset" function.
 
 """
+
+
 def train_model(use_tda=False,
                 tda_train_file=None,
                 tda_test_file=None,
@@ -81,7 +84,8 @@ def train_model(use_tda=False,
 
         # Validation
         model.eval()
-        correct = total = 0
+        all_preds = []
+        all_labels = []
         with torch.no_grad():
             for data in valid_loader:
                 inputs = data['pointcloud'].to(device).float()
@@ -93,9 +97,18 @@ def train_model(use_tda=False,
                 outputs = model(
                     inputs, tda_feats) if use_tda else model(inputs)
                 _, predicted = outputs.max(1)
-                total += labels.size(0)
-                correct += predicted.eq(labels).sum().item()
-        print(f"Validation Accuracy: {100 * correct / total:.2f}%\n")
+
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
+        # Calculate precision, recall, and F1 score
+        precision = precision_score(all_labels, all_preds, average='macro')
+        recall = recall_score(all_labels, all_preds, average='macro')
+        f1 = f1_score(all_labels, all_preds, average='macro')
+
+        print(f"Validation Precision: {precision:.4f}")
+        print(f"Validation Recall: {recall:.4f}")
+        print(f"Validation F1 Score: {f1:.4f}\n")
 
     # Save the model
     suffix = "_with_tda" if use_tda else "_no_tda"
