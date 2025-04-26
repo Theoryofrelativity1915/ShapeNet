@@ -3,9 +3,9 @@ from train import train_model
 
 if __name__ == "__main__":
     # Toggle this flag to switch between using TDA features and not using TDA features (generic PointNet implementation)
-    use_tda = True  # Set to False to disable TDA
+    use_tda = False  # Set to False to disable TDA
     train_model(
-        use_tda=True,
+        use_tda=use_tda,
         tda_train_file="./dutta_modelnet/train-modelnet40-giottofeatures.txt",
         tda_test_file="./dutta_modelnet/test-modelnet40-giottofeatures.txt",
         train_split_file="./dutta_modelnet/modelnet40_train.txt",

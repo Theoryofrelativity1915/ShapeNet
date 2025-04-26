@@ -100,12 +100,22 @@ def train_model(use_tda=False,
 
                 all_preds.extend(predicted.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
+        # Calculate validation accuracy
+        num_correct = 0
+        for pred, true_label in zip(all_preds, all_labels):
+            if pred == true_label:
+                num_correct += 1
+
+        num_total = len(all_labels)
+        val_accuracy = 100.0 * num_correct / num_total
 
         # Calculate precision, recall, and F1 score
         precision = precision_score(all_labels, all_preds, average='macro')
         recall = recall_score(all_labels, all_preds, average='macro')
         f1 = f1_score(all_labels, all_preds, average='macro')
 
+        # Print validation metrics
+        print(f"Validation Accuracy: {val_accuracy:.2f}%")
         print(f"Validation Precision: {precision:.4f}")
         print(f"Validation Recall: {recall:.4f}")
         print(f"Validation F1 Score: {f1:.4f}\n")

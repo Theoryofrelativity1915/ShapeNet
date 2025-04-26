@@ -22,12 +22,12 @@ class PointNet2Classification(nn.Module):
 
         # Input to fc1 is 1024 + tda_dim
         # Allows the model to train regularly without tda inputs
-        self.fc1 = nn.Linear(
-            1024 + tda_dim if tda_dim is not None else 1024, 512)
+        self.fc1 = nn.Linear(1024, 512)
         self.bn1 = nn.BatchNorm1d(512)
         self.drop1 = nn.Dropout(0.4)
 
-        self.fc2 = nn.Linear(512, 256)
+        self.fc2 = nn.Linear(
+            512 + tda_dim if tda_dim is not None else 512, 256)
         self.bn2 = nn.BatchNorm1d(256)
         self.drop2 = nn.Dropout(0.4)
 
@@ -46,12 +46,12 @@ class PointNet2Classification(nn.Module):
         x = self.mlp3(x)
         x = torch.max(x, 2)[0]
 
+        x = F.relu(self.bn1(self.fc1(x)))
+        x = self.drop1(x)
         # Inject TDA features
         if tda_feats is not None:
             x = torch.cat([x, tda_feats], dim=1)
 
-        x = F.relu(self.bn1(self.fc1(x)))
-        x = self.drop1(x)
         x = F.relu(self.bn2(self.fc2(x)))
         x = self.drop2(x)
         x = self.fc3(x)
