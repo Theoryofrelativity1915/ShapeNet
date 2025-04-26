@@ -1,50 +1,18 @@
-import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from PointNet import PointNet2Classification as PointNet
 from PointCloudDataset import PointCloudDataset
 from constants import class_name_id_map, data_path
+from utils import build_combined_dataset
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+"""
+This is essentially a generic training function for PointNet. 
 
+The key here is loading and intervweaving the tda data. The most difficult part of this was probably aligning the persistence diagrams with their corresponding point clouds. The act of shuffling the data set meant that I had to combine all of the data prior to dataset shuffling. Hence the "build_combined_dataset" function.
 
-def build_combined_dataset(root_dir, split_file, tda_file=None, class_name_id_map=None):
-    combined = []
-    tda_lookup = []
-
-    # Load TDA vectors if provided
-    if tda_file:
-        with open(tda_file, 'r') as f:
-            for line in f:
-                parts = line.strip().split()
-                *features, class_name = parts
-                vec = list(map(float, features))
-                tda_lookup.append((vec, class_name.lower()))
-
-    # Load file paths and match with labels and tda vecs
-    with open(split_file, 'r') as f:
-        for i, line in enumerate(f):
-            name = line.strip()  # e.g., airplane_0001
-            class_name = next(
-                (cls for cls in class_name_id_map if name.startswith(cls + "_")), None)
-            if class_name is None:
-                raise ValueError(
-                    f"Cannot determine class from filename: {name}")
-            label = class_name_id_map[class_name]
-
-            folder = 'test' if 'test' in split_file else 'train'
-            file_path = os.path.join(
-                root_dir, class_name, folder, f"{name}.txt")
-
-            tda_vec = tda_lookup[i][0] if tda_file else None
-            combined.append((file_path, label, tda_vec, name))
-
-    return combined
-
-# ----- Training pipeline -----
-
-
+"""
 def train_model(use_tda=False,
                 tda_train_file=None,
                 tda_test_file=None,
@@ -68,8 +36,6 @@ def train_model(use_tda=False,
     )
 
     tda_dim = len(train_samples[0][2]) if use_tda else None
-    # if use_tda:
-    #     print(f"TDA dim: {tda_dim}")
 
     # Dataset and loaders
     train_dataset = PointCloudDataset(
