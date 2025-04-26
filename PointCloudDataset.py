@@ -22,7 +22,10 @@ class PointCloudDataset:
         item = {
             'pointcloud': pointcloud,
             'category': label,
+            # Not needed. This was here to help me verify that tda inputs are aligned
             'filename': filename
+            # with the correct point cloud text file
         }
         if tda_vec is not None:
             item['tda'] = torch.tensor(tda_vec, dtype=torch.float32)
+        return item

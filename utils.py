@@ -1,11 +1,7 @@
 import torch
-from gtda.homology import VietorisRipsPersistence
 import numpy as np
-import open3d as o3d
 import gudhi as gd
 import os
-import numpy as np
-import json
 from torchvision import transforms
 from PointSampler import PointSampler
 from constants import data_path
@@ -36,24 +32,6 @@ def farthest_point_sample(xyz, npoint):
         farthest = torch.max(distance, -1)[1]
 
     return centroids
-
-
-def save_point_clouds(folders):
-    ii = 0
-    for dr in folders:
-        for sub_folder in ['test', 'train']:
-            print(os.path.join(data_path, dr, sub_folder))
-            dataset_dir = os.path.join(data_path, dr, sub_folder)
-            dataset_files = os.listdir(dataset_dir)
-            for file in dataset_files:
-                file_path = os.path.join(dataset_dir, file)
-                file_name = file.rstrip(".txt")
-                verts, faces = read_txt_pointcloud(file_path)
-                pointcloud = PointSampler(1024)((verts, faces))
-                pointcloud = Normalize()(pointcloud)
-                ii += 1
-                torch.save(pointcloud, f"point_clouds/{file_name}.pt")
-        print(f'{ii} number of point clouds have been saved!')
 
 
 def read_txt_pointcloud(file_path):

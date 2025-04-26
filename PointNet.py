@@ -16,7 +16,7 @@ class PointNet2Classification(nn.Module):
         self.mlp3 = nn.Sequential(
             nn.Conv1d(128, 1024, 1), nn.BatchNorm1d(1024), nn.ReLU())
 
-        # Now input to fc1 is 1024 + tda_dim
+        # Input to fc1 is 1024 + tda_dim
         # Allows the model to train regularly without tda inputs
         self.fc1 = nn.Linear(
             1024 + tda_dim if tda_dim is not None else 1024, 512)

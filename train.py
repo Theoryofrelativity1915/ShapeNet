@@ -123,8 +123,8 @@ def train_model(use_tda=False,
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
 
-        print(f"[Epoch {epoch+1}/{epochs}] Train Loss: {
-              total_loss:.4f} | Accuracy: {100*correct/total:.2f}%")
+        print(
+            f"[Epoch {epoch+1}/{epochs}] Train Loss: { total_loss: .4f} | Accuracy: {100*correct/total: .2f} %")
 
         # Validation
         model.eval()
@@ -147,4 +147,3 @@ def train_model(use_tda=False,
     # Save the model
     suffix = "_with_tda" if use_tda else "_no_tda"
     torch.save(model.state_dict(), f"pointnet{suffix}.pth")
-
