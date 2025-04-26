@@ -2,7 +2,7 @@
 from train import train_model
 
 if __name__ == "__main__":
-    # === Toggle this flag to switch between TDA and no TDA ===
+    # Toggle this flag to switch between using TDA features and not using TDA features (generic PointNet implementation)
     use_tda = True  # Set to False to disable TDA
     train_model(
         use_tda=True,

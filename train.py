@@ -8,8 +8,6 @@ from constants import class_name_id_map, data_path
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ----- Helper: Build combined dataset -----
-
 
 def build_combined_dataset(root_dir, split_file, tda_file=None, class_name_id_map=None):
     combined = []
@@ -101,17 +99,6 @@ def train_model(use_tda=False,
             if tda_feats is not None:
                 tda_feats = tda_feats.to(device).float()
 
-            # Debug first batch
-            # if epoch == 0 and batch_idx == 0:
-            #     print("\n DEBUG: Verifying alignment in first batch")
-            #     for i in range(len(labels)):
-            #         label = labels[i].item()
-            #         tda_value = tda_feats[i][0].item(
-            #         ) if tda_feats is not None else None
-            #         filename = data['filename'][i]
-            #         print(f"  Sample {i}: File = {filename}, Label = {
-            #             label}, TDA[0] = {tda_value:.4f}")
-
             optimizer.zero_grad()
             outputs = model(inputs, tda_feats) if use_tda else model(inputs)
             loss = criterion(outputs, labels)
@@ -124,7 +111,7 @@ def train_model(use_tda=False,
             correct += predicted.eq(labels).sum().item()
 
         print(
-            f"[Epoch {epoch+1}/{epochs}] Train Loss: { total_loss: .4f} | Accuracy: {100*correct/total: .2f} %")
+            f"[Epoch {epoch+1}/{epochs}] Train Loss: {total_loss: .4f} | Accuracy: {100*correct/total: .2f} %")
 
         # Validation
         model.eval()

@@ -1,37 +1,10 @@
 import torch
 import numpy as np
-import gudhi as gd
 import os
 from torchvision import transforms
 from PointSampler import PointSampler
-from constants import data_path
 
 homology_dimensions = [0, 1, 2]
-
-
-def get_folders():
-    folders = [dr for dr in sorted(os.listdir(
-        data_path)) if os.path.isdir(f'{data_path}/{dr}')]
-    return folders
-
-
-def farthest_point_sample(xyz, npoint):
-    """Randomly selects farthest points to downsample the point cloud."""
-    B, N, C = xyz.shape
-    centroids = torch.zeros(B, npoint, dtype=torch.long).to(xyz.device)
-    distance = torch.ones(B, N).to(xyz.device) * 1e10
-    farthest = torch.randint(0, N, (B,), dtype=torch.long).to(xyz.device)
-    batch_indices = torch.arange(B, dtype=torch.long).to(xyz.device)
-
-    for i in range(npoint):
-        centroids[:, i] = farthest
-        centroid = xyz[batch_indices, farthest, :].unsqueeze(1)  # (B, 1, 3)
-        dist = torch.sum((xyz - centroid) ** 2, -1)  # (B, N)
-        mask = dist < distance
-        distance[mask] = dist[mask]
-        farthest = torch.max(distance, -1)[1]
-
-    return centroids
 
 
 def read_txt_pointcloud(file_path):
@@ -67,18 +40,6 @@ def default_transforms():
     ])
 
 
-def collate_fn(batch_list):
-    ret = {}
-    ret['class_id'] = torch.from_numpy(
-        np.array([x['class_id'] for x in batch_list])).long()
-    ret['class_name'] = np.array([x['class_name'] for x in batch_list])
-    ret['points'] = torch.from_numpy(
-        np.stack([x['points'] for x in batch_list], axis=0)).float()
-    ret['seg_labels'] = torch.from_numpy(
-        np.stack([x['seg_labels'] for x in batch_list], axis=0)).long()
-    return ret
-
-
 def get_point_clouds_and_labels(dataset_dir):
     labels = []
     pcds = []
@@ -94,16 +55,3 @@ def get_point_clouds_and_labels(dataset_dir):
                     pcds.append(file_path)
                     labels.append(dr)
     return [pcds, labels]
-
-
-def compute_persistence_diagram_in_dimension_k(P, dimensions):
-    alpha_complex = gd.AlphaComplex(points=P)
-    simplex_tree = alpha_complex.create_simplex_tree()
-    simplex_tree.persistence()
-    pers_pairs = []
-    for i in dimensions:
-        pairs = simplex_tree.persistence_intervals_in_dimension(i)
-        for pair in pairs:
-            # edited it for giotto-tda; i is now at the back instead of front
-            pers_pairs.append([np.float64(pair[0]), (pair[1]), np.float64(i)])
-    return pers_pairs

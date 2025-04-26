@@ -2,6 +2,10 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torch
 
+# This is almost entirely a vanilla PointNet++ implementation
+# The only real differences are the two lines containing tda_feats and tda_dim.
+# These inject the tda features into pointnet via concatentation
+
 
 class PointNet2Classification(nn.Module):
     def __init__(self, num_classes=40, tda_dim=18):
@@ -34,19 +38,18 @@ class PointNet2Classification(nn.Module):
         x: (batch_size, num_points, 3)
         tda_feats: (batch_size, tda_dim)
         """
-        x = x.permute(0, 2, 1)  # (B, 3, N)
+        x = x.permute(0, 2, 1)
 
         # Feature extraction
         x = self.mlp1(x)
         x = self.mlp2(x)
         x = self.mlp3(x)
-        x = torch.max(x, 2)[0]  # (B, 1024)
+        x = torch.max(x, 2)[0]
 
         # Inject TDA features
         if tda_feats is not None:
-            x = torch.cat([x, tda_feats], dim=1)  # (B, 1024 + tda_dim)
+            x = torch.cat([x, tda_feats], dim=1)
 
-        # Classifier head
         x = F.relu(self.bn1(self.fc1(x)))
         x = self.drop1(x)
         x = F.relu(self.bn2(self.fc2(x)))
