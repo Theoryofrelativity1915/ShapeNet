@@ -110,9 +110,10 @@ def train_model(use_tda=False,
         val_accuracy = 100.0 * num_correct / num_total
 
         # Calculate precision, recall, and F1 score
-        precision = precision_score(all_labels, all_preds, average='macro')
-        recall = recall_score(all_labels, all_preds, average='macro')
-        f1 = f1_score(all_labels, all_preds, average='macro')
+        precision = 100 * \
+            precision_score(all_labels, all_preds, average='macro')
+        recall = 100 * recall_score(all_labels, all_preds, average='macro')
+        f1 = 100 * f1_score(all_labels, all_preds, average='macro')
 
         # Print validation metrics
         print(f"Validation Accuracy: {val_accuracy:.2f}%")
